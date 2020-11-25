@@ -42,7 +42,6 @@ parser.add_argument('--psmap', type=int, default=128)
 parser.add_argument('--embedding_dim', type=int, default=32)
 parser.add_argument('--warp_dim', type=int, default=64)
 parser.add_argument('--ups_dw', type=int, default=4)
-parser.add_argument('--last_bn', type=str2bool, default=True)
 parser.add_argument('--scale', type=float, default=1.0)
 
 parser.add_argument('--w_recon_img', type=float, default=10)

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="server_v100_20146">
+  <component name="PublishConfigData" autoUpload="Always" serverName="server_v100_20139">
     <serverData>
+      <paths name="server_v100_20139">
+        <serverdata>
+          <mappings>
+            <mapping deploy="home/gz/Projects/carime" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="server_v100_20146">
         <serverdata>
           <mappings>

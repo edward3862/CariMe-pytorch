@@ -2,7 +2,7 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="20146_pytorch1.4 (sftp://gz@210.28.133.13:20146/home/gz/anaconda3/envs/pytorch1.4/bin/python)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="20139_pytorch1.5 (sftp://gz@210.28.133.13:20139/home/gz/anaconda3/envs/pytorch1.5/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

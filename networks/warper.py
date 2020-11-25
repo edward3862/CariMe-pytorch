@@ -57,7 +57,7 @@ class Decoder(nn.Module):
 
 
 class WarpEncoder(nn.Module):
-    def __init__(self, input_dim=2, dim=64, downs=4, code_dim=8, last_bn=True, norm='bn', activation='relu',
+    def __init__(self, input_dim=2, dim=64, downs=4, code_dim=8, norm='bn', activation='relu',
                  pad_type='reflect'):
         super(WarpEncoder, self).__init__()
 
@@ -70,8 +70,7 @@ class WarpEncoder(nn.Module):
             self.model += [Conv2dBlock(dim, dim, 4, 2, 1, norm=norm, activation=activation, pad_type=pad_type)]
         self.model += [nn.AdaptiveAvgPool2d(1),
                        nn.Conv2d(dim, code_dim, 1, 1, 0)]
-        if last_bn:
-            self.model += [nn.BatchNorm2d(code_dim)]
+        self.model += [nn.BatchNorm2d(code_dim)]
         self.model = nn.Sequential(*self.model)
 
     def forward(self, x):
@@ -114,8 +113,7 @@ class Warper(nn.Module):
         super(Warper, self).__init__()
         self.enc = Encoder(latent_dim=args.embedding_dim)
         self.dec = Decoder(dim=args.embedding_dim)
-        self.encoder_w = WarpEncoder(input_dim=2, dim=64, downs=args.ups_dw, code_dim=args.warp_dim,
-                                     last_bn=args.last_bn)
+        self.encoder_w = WarpEncoder(input_dim=2, dim=64, downs=args.ups_dw, code_dim=args.warp_dim)
         self.decoder_w = WarpDecoder(latent_dim=(args.embedding_dim + args.warp_dim), ups=args.ups_dw,
                                      output_size=args.psmap)
         self.const_map = make_constant_map(256).cuda()

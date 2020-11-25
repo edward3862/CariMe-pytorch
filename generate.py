@@ -20,8 +20,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--data_root', type=str, default='data/WebCaricature_align_1.3_256')
-parser.add_argument('--model_path_warper', type=str, default='pretrained/warper.pt')
-parser.add_argument('--model_path_styler', type=str, default='pretrained/styler_gen.pt')
+parser.add_argument('--model_path_warper', type=str, default='path/to/warper.pt')
+parser.add_argument('--model_path_styler', type=str, default='path/to/styler_gen.pt')
 parser.add_argument('--output_path', type=str, default='result/generated')
 
 parser.add_argument('--mode', type=str, default='test')
@@ -38,6 +38,7 @@ parser.add_argument('--warp_dim', type=int, default=64)
 parser.add_argument('--ups_dw', type=int, default=4)
 parser.add_argument('--last_bn', type=str2bool, default=True)
 parser.add_argument('--scale', type=float, default=1)
+parser.add_argument('--generate_num', type=int, default=3)
 
 parser.add_argument('--style_dim', type=int, default=8)
 parser.add_argument('--down_es', type=int, default=2)
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     styler.to(device)
     styler.eval()
 
-    num = 3
+    num = args.generate_num
 
     for batch, item in tqdm(enumerate(dataloader)):
         img_p = item['img_p'].to(device)
