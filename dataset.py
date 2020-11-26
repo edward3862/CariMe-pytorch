@@ -99,7 +99,6 @@ class WCDataSet(data.Dataset):
             rate = random.random() / 5 + 1
         else:
             rate = 1
-        # ldmark = (ldmark - self.ldmark_mean) * rate + self.ldmark_mean
         ldmark = (ldmark - self.ldmark_mean) * (rate - 1) + ldmark
         return ldmark, rate
 
