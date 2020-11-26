@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="JavaScriptSettings">
-    <option name="languageLevel" value="ES6" />
-  </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="20139_pytorch1.5 (sftp://gz@210.28.133.13:20139/home/gz/anaconda3/envs/pytorch1.5/bin/python)" project-jdk-type="Python SDK" />
-</project>
