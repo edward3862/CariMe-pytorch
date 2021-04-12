@@ -6,19 +6,13 @@ import numpy as np
 
 import torch
 import torch.nn.init as init
-
-from PIL import Image
-from skimage import transform as sktf
+import torchvision.utils as vutils
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
+import skimage.transform as sktf
+from PIL import Image
 
 
-def load_filenames(data_root, name, token, file_type):
-    files = os.listdir(os.path.join(data_root, token, name))
-    return [os.path.join(data_root, token, name, file) for file in files if file.startswith(file_type)]
-
-
-def make_position_map(length):
+def make_field(length):
     temp_height = torch.linspace(start=-1.0, end=1.0, steps=length, requires_grad=False).view(length, 1)
     temp_width = torch.linspace(start=-1, end=1, steps=length, requires_grad=False).view(1, length)
     pos_x = temp_height.repeat(1, length).view(length, length, 1)
@@ -26,8 +20,8 @@ def make_position_map(length):
     return pos_y.numpy(), pos_x.numpy()
 
 
-def make_constant_map(length=256):
-    y, x = make_position_map(length)
+def make_init_field(length=256):
+    y, x = make_field(length)
     map = np.concatenate((y, x), axis=2)
     map = torch.from_numpy(map).unsqueeze(0)
     return map
@@ -54,14 +48,31 @@ def warp_image(image, src_points, dst_points):
     return warped
 
 
+def load_filenames(data_root, name, token, file_type):
+    files = os.listdir(os.path.join(data_root, token, name))
+    return [os.path.join(data_root, token, name, file) for file in files if file.startswith(file_type)]
+
+
 def warp_position_map(p, c, length=256):
-    pos_ys, pos_xs = make_position_map(length)
+    pos_ys, pos_xs = make_field(length)
     pos_ys_warped = warp_image(pos_ys, p, c)
     pos_xs_warped = warp_image(pos_xs, p, c)
     return pos_ys_warped, pos_xs_warped
 
 
-def unloader(img):
+def load_img(path):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    ]
+    )
+    img = Image.open(path)
+    img = transform(img)
+    img = img.unsqueeze(0)
+    return img
+
+
+def unload_img(img):
     img = (img + 1) / 2
     tf = transforms.Compose([
         transforms.ToPILImage()
@@ -69,24 +80,18 @@ def unloader(img):
     return tf(img)
 
 
-def prepare_sub_folder(output_path, delete=True):
+def prepare_sub_folder(output_path, delete_first=True):
     print('preparing sub folder for {}'.format(output_path))
-    if delete and os.path.exists(output_path):
+    if delete_first and os.path.exists(output_path):
         shutil.rmtree(output_path)
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    os.makedirs(output_path, exist_ok=True)
 
     checkpoint_path = os.path.join(output_path, 'checkpoints')
-    if not os.path.exists(checkpoint_path):
-        os.makedirs(checkpoint_path)
+    os.makedirs(checkpoint_path, exist_ok=True)
 
     images_path = os.path.join(output_path, 'images')
-    if not os.path.exists(images_path):
-        os.makedirs(images_path)
+    os.makedirs(images_path, exist_ok=True)
 
-    logs_path = os.path.join(output_path, 'logs')
-    if not os.path.exists(logs_path):
-        os.makedirs(logs_path)
     return checkpoint_path, images_path
 
 
@@ -94,7 +99,6 @@ def weights_init(init_type='gaussian', mean=0.0, std=0.02):
     def init_fun(m):
         classname = m.__class__.__name__
         if (classname.find('Conv') == 0 or classname.find('Linear') == 0) and hasattr(m, 'weight'):
-            # print m.__class__.__name__
             if init_type == 'gaussian':
                 init.normal_(m.weight.data, mean, std)
             elif init_type == 'xavier':
@@ -122,23 +126,10 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
 
-def load_img(path):
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ]
-    )
-    img = Image.open(path).convert('RGB')
-    img = transform(img)
-    img = img.unsqueeze(0)
-    return img
-
-
-def cal_delta(psmap):
-    pos_y, pos_x = make_position_map(256)
-    const = np.concatenate((pos_y, pos_x), axis=2)
-    const = torch.from_numpy(const).cuda()
-    y1, x1 = const[:, :, 0], psmap[:, :, 1]
-    y2, x2 = const[:, :, 0], psmap[:, :, 1]
-    return torch.mean(torch.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2))
+def write_image(iterations, dir, im_ins):
+    B, K, C, H, W = im_ins.size()
+    file_name = os.path.join(dir, '%08d' % (iterations + 1) + '.jpg')
+    image_tensor = im_ins.view(B*K, C, H, W)
+    image_grid = vutils.make_grid(image_tensor.data, nrow=K, padding=0, normalize=True)
+    vutils.save_image(image_grid, file_name, nrow=1)
 

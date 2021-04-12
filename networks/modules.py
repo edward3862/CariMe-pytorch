@@ -4,9 +4,6 @@ import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
 
-##################################################################################
-# Sequential Models
-##################################################################################
 class ResBlocks(nn.Module):
     def __init__(self, num_blocks, dim, norm, activation, pad_type):
         super(ResBlocks, self).__init__()
@@ -22,6 +19,20 @@ class ResBlocks(nn.Module):
         return self.model(x)
 
 
+class AdaResBlocks(nn.Module):
+    def __init__(self, num_blocks, dim, restype='adain', dropout=0):
+        super(AdaResBlocks, self).__init__()
+        self.num_blocks = num_blocks
+        for i in range(num_blocks):
+            self.__setattr__('res' + str(i), AdaResBlock(dim, restype=restype, dropout=dropout))
+
+    def forward(self, x, gamma, beta):
+        for i in range(self.num_blocks):
+            res_block = self.__getattr__('res' + str(i))
+            x = res_block(x, gamma, beta)
+        return x
+
+
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, dim, n_blk, norm='none', activ='relu'):
 
@@ -30,16 +41,13 @@ class MLP(nn.Module):
         self.model += [LinearBlock(input_dim, dim, norm=norm, activation=activ)]
         for i in range(n_blk - 2):
             self.model += [LinearBlock(dim, dim, norm=norm, activation=activ)]
-        self.model += [LinearBlock(dim, output_dim, norm='none', activation='none')]  # no output activations
+        self.model += [LinearBlock(dim, output_dim, norm='none', activation='none')]
         self.model = nn.Sequential(*self.model)
 
     def forward(self, x):
         return self.model(x.view(x.size(0), -1))
 
 
-##################################################################################
-# Basic Blocks
-##################################################################################
 class ResBlock(nn.Module):
     def __init__(self, dim, norm='in', activation='relu', pad_type='zero'):
         super(ResBlock, self).__init__()
@@ -58,6 +66,38 @@ class ResBlock(nn.Module):
         residual = x
         out = self.model(x)
         out += residual
+        return out
+
+
+class AdaResBlock(nn.Module):
+    def __init__(self, dim, restype='adain', use_bias=False, dropout=0):
+        super(AdaResBlock, self).__init__()
+        self.model = []
+        self.dropout = dropout
+
+        self.pad1 = nn.ReflectionPad2d(1)
+        self.conv1 = nn.Conv2d(dim, dim, 3, 1, 0, bias=use_bias)
+        self.norm1 = AdaIN() if restype == 'adain' else AdaLIN(dim)
+        self.activ = nn.ReLU(inplace=True)
+
+        self.pad2 = nn.ReflectionPad2d(1)
+        self.conv2 = nn.Conv2d(dim, dim, 3, 1, 0, bias=use_bias)
+        self.norm2 = AdaIN() if restype == 'adain' else AdaLIN(dim)
+
+    def forward(self, x, gamma, beta):
+        residual = x
+        x = self.pad1(x)
+        x = self.conv1(x)
+        x = self.norm1(x, gamma, beta)
+        x = self.activ(x)
+
+        if self.dropout:
+            x = F.dropout(x, p=self.dropout)
+
+        x = self.pad2(x)
+        x = self.conv2(x)
+        x = self.norm2(x, gamma, beta)
+        out = x + residual
         return out
 
 
@@ -179,9 +219,6 @@ class Conv2dBlock(nn.Module):
         return x
 
 
-##################################################################################
-# Normalization Blocks
-##################################################################################
 class AdaptiveInstanceNorm2d(nn.Module):
     def __init__(self, num_features, eps=1e-5, momentum=0.1):
         super(AdaptiveInstanceNorm2d, self).__init__()
@@ -322,52 +359,6 @@ class AdaLIN(nn.Module):
         out = self.rho.expand(x.shape[0], -1, -1, -1) * out_in + (1 - self.rho.expand(x.shape[0], -1, -1, -1)) * out_ln
         out = out * gamma + beta
         return out
-
-
-class AdaResBlock(nn.Module):
-    def __init__(self, dim, restype='adain', use_bias=False, dropout=0):
-        super(AdaResBlock, self).__init__()
-        self.model = []
-        self.dropout = dropout
-
-        self.pad1 = nn.ReflectionPad2d(1)
-        self.conv1 = nn.Conv2d(dim, dim, 3, 1, 0, bias=use_bias)
-        self.norm1 = AdaIN() if restype == 'adain' else AdaLIN(dim)
-        self.activ = nn.ReLU(inplace=True)
-
-        self.pad2 = nn.ReflectionPad2d(1)
-        self.conv2 = nn.Conv2d(dim, dim, 3, 1, 0, bias=use_bias)
-        self.norm2 = AdaIN() if restype == 'adain' else AdaLIN(dim)
-
-    def forward(self, x, gamma, beta):
-        residual = x
-        x = self.pad1(x)
-        x = self.conv1(x)
-        x = self.norm1(x, gamma, beta)
-        x = self.activ(x)
-
-        if self.dropout:
-            x = F.dropout(x, p=self.dropout)
-
-        x = self.pad2(x)
-        x = self.conv2(x)
-        x = self.norm2(x, gamma, beta)
-        out = x + residual
-        return out
-
-
-class AdaResBlocks(nn.Module):
-    def __init__(self, num_blocks, dim, restype='adain', dropout=0):
-        super(AdaResBlocks, self).__init__()
-        self.num_blocks = num_blocks
-        for i in range(num_blocks):
-            self.__setattr__('res' + str(i), AdaResBlock(dim, restype=restype, dropout=dropout))
-
-    def forward(self, x, gamma, beta):
-        for i in range(self.num_blocks):
-            res_block = self.__getattr__('res' + str(i))
-            x = res_block(x, gamma, beta)
-        return x
 
 
 class RhoClipper(object):

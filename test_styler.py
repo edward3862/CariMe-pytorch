@@ -8,15 +8,15 @@ import random
 
 from tqdm import tqdm
 from networks.styler import Styler
-from utils import unloader, str2bool
+from utils import unload_img, str2bool
 from dataset import make_dataset
 from torch.utils.data import DataLoader
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_root', type=str, default='data/WebCaricature_align_1.3_256')
-parser.add_argument('--name', type=str, default='result/styler')
+parser.add_argument('--name', type=str, default='results/styler')
 parser.add_argument('--model', type=str, default='gen_00200000.pt')
 parser.add_argument('--output_dir', type=str, default='test')
 
@@ -75,4 +75,4 @@ if __name__ == '__main__':
             filename = filenames[i]
 
             figure = torch.cat((input, output), dim=2)
-            unloader(figure).save(os.path.join(output_path, '{}_{}.jpg'.format(name, filename)), 'jpeg')
+            unload_img(figure).save(os.path.join(output_path, '{}_{}.jpg'.format(name, filename)), 'jpeg')

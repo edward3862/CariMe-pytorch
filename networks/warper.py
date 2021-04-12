@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils import make_constant_map
+from utils import make_init_field
 from .modules import Conv2dBlock, LinearBlock
 
 
@@ -111,32 +111,37 @@ class WarpDecoder(nn.Module):
 class Warper(nn.Module):
     def __init__(self, args):
         super(Warper, self).__init__()
-        self.enc = Encoder(latent_dim=args.embedding_dim)
-        self.dec = Decoder(dim=args.embedding_dim)
-        self.encoder_w = WarpEncoder(input_dim=2, dim=64, downs=args.ups_dw, code_dim=args.warp_dim)
-        self.decoder_w = WarpDecoder(latent_dim=(args.embedding_dim + args.warp_dim), ups=args.ups_dw,
-                                     output_size=args.psmap)
-        self.const_map = make_constant_map(256).cuda()
-        self.factor = 256 // args.psmap
+        self.encoder_p = Encoder(latent_dim=args.embedding_dim)
+        self.decoder_p = Decoder(dim=args.embedding_dim)
+        self.encoder_w = WarpEncoder(input_dim=2, dim=64, downs=4, code_dim=args.warp_dim)
+        self.decoder_w = WarpDecoder(latent_dim=(args.embedding_dim + args.warp_dim), ups=4, output_size=args.field_size)
+        self.const_field = make_init_field(args.img_size).cuda()
+        self.factor = args.img_size // args.field_size
 
-    def encode(self, psmap):
-        psmap = F.interpolate(psmap.permute(0, 3, 1, 2), scale_factor=1 / self.factor, mode='bilinear',
+    def encode_p(self, img_p):
+        return self.encoder_p(img_p)
+
+    def decode_p(self, feat):
+        return self.decoder_p(feat)
+
+    def encode_f(self, field):
+        field = F.interpolate(field.permute(0, 3, 1, 2), scale_factor=1 / self.factor, mode='bilinear',
                               align_corners=True)
-        z = self.encoder_w(psmap)
+        z = self.encoder_w(field)
         return z
 
-    def decode(self, embedding, z, scale=1.0):
+    def decode_f(self, embedding, z, scale=1.0):
         flow = torch.cat((embedding, z), dim=1)
         flow = self.decoder_w(flow)
         flow = F.interpolate(flow, scale_factor=self.factor, mode='bilinear', align_corners=True).permute(0, 2, 3, 1)
-        out = self.const_map + scale * flow
-        return flow, out
+        field = self.const_field + scale * flow
+        return flow, field
 
     def forward(self, img_p, z, scale=1.0):
-        _, embedding = self.enc(img_p)
-        flow, psmap_pred = self.decode(embedding, z, scale)
-        output = F.grid_sample(img_p, psmap_pred, align_corners=True)
-        return output, psmap_pred, flow
+        _, embedding = self.encoder_p(img_p)
+        flow, field_pred = self.decode_f(embedding, z, scale)
+        output = F.grid_sample(img_p, field_pred, align_corners=True)
+        return output, field_pred, flow
 
     def save(self, dir, step):
         warper_name = os.path.join(dir, 'warper_%08d.pt' % (step + 1))

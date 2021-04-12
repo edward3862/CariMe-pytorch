@@ -84,21 +84,11 @@ class Decoder(nn.Module):
 class Gen_Style(nn.Module):
     def __init__(self, args):
         super(Gen_Style, self).__init__()
-        input_dim = 3
-        dim = 64
-        downs = 2
-        num_res = 4
-        restype = args.restype
         style_dim = args.style_dim
-        # self.norm = args.norm_style
-        norm_d = 'lin' if restype == 'adalin' else 'ln'
-        self.encoder_c = ContentEncoder(input_dim, dim, num_res, downs, norm='in', activation='relu',
-                                        pad_type='reflect')
-        self.encoder_s = StyleEncoder(input_dim, dim, args.down_es, style_dim, norm='none', activation='relu',
-                                      pad_type='reflect')
+        self.encoder_c = ContentEncoder(3, 64, 4, 2, norm='in', activation='relu', pad_type='reflect')
+        self.encoder_s = StyleEncoder(3, 64, 2, style_dim, norm='none', activation='relu', pad_type='reflect')
         latent_dim = self.encoder_c.output_dim
-        self.decoder = Decoder(input_dim, latent_dim, num_res, downs, restype=restype, norm=norm_d, activation='relu',
-                               pad_type='reflect')
+        self.decoder = Decoder(3, latent_dim, 4, 2, restype='adalin', norm='lin', activation='relu', pad_type='reflect')
         self.style_controller = StyleController(style_dim, latent_dim, norm='ln', activation='relu')
 
     def encode(self, x):
@@ -168,8 +158,8 @@ class Styler(nn.Module):
     def encode(self, x):
         return self.gen.encode(x)
 
-    def decode(self, content, s):
-        return self.gen.deocde(content, s)
+    def decode(self, content, style):
+        return self.gen.decode(content, style)
 
     def forward(self, img_p, s):
         output = self.gen(img_p, s)
@@ -184,4 +174,3 @@ class Styler(nn.Module):
     def load(self, path):
         state_dict = torch.load(path)
         self.gen.load_state_dict(state_dict)
-

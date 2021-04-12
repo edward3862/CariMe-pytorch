@@ -1,29 +1,22 @@
-# Pytorch Code for CariMe
+# CariMe: Unpaired Caricature Generation with Multiple Exaggerations
+
+The official pytorch implementation of the paper "CariMe: Unpaired Caricature Generation with Multiple Exaggerations"
 
 >CariMe: Unpaired Caricature Generation with Multiple Exaggerations
 >
 >Zheng Gu, Chuanqi Dong, Jing Huo, Wenbin Li, and Yang Gao
 >
 >Paper: https://arxiv.org/abs/2010.00246
->
->Abstract: Caricature generation aims to translate real photos into caricatures with artistic styles and shape exaggerations while maintaining the identity of the subject. Different from the generic image-to-image translation, drawing a caricature automatically is a more challenging task due to the existence of various spacial deformations. Previous caricature generation methods are obsessed with predicting deﬁnite image warping from a given photo while ignoring the intrinsic representation and distribution for exaggerations in caricatures. This limits their ability on diverse exaggeration generation. In this paper, we generalize the caricature generation problem from instance-level warping prediction to distribution-level deformation modeling. Based on this assumption, we present the ﬁrst exploration for unpaired CARIcature generation with Multiple Exaggerations (CariMe). Technically, we propose a Multi-exaggeration Warper network to learn the distribution-level mapping from photo to facial exaggerations. This makes it possible to generate diverse and reasonable exaggerations from randomly sampled warp codes given one input photo. To better represent the facial exaggeration and produce ﬁne-grained warping, a deformation-ﬁeld-based warping method is also proposed, which helps us to capture more detailed exaggerations than other point-based warping methods. Experiments and two perceptual studies prove the superiority of our method comparing with other state-of-the-art methods, showing the improvement of our work on caricature generation.
 
-
-<p align="center">
-     <img src=examples.png width=100% /> <br>
-</p>
 
 
 ## Prerequisites
 - Python 3
-- Pytorch 1.4+
+- Pytorch 1.5.1
 - scikit-image
-- tensorboardX
 
 ## Preparing Dataset
-- Get the Webcaricature dataset([link](https://cs.nju.edu.cn/rl/WebCaricature.htm)), and unzip the dataset to the `data` folder.
-
-- Align the dataset by running:
+- Get the [Webcaricature](https://cs.nju.edu.cn/rl/WebCaricature.htm) dataset, unzip the dataset to the `data` folder and align the dataset by running the following script:
 ```shell script
 python alignment.py
 ```
@@ -39,24 +32,39 @@ python train_styler.py
 ```
 
 ## Testing
-Test the Warper:
+- Test the Warper only:
 ```shell script
 python test_warper.py --scale 1.0
 ```
 
-Test the Styler:
+- Test the Styler only:
 ```shell script
 python test_styler.py 
 ```
 
-Generate caricatures with both exaggeration and style transfer:
+- Generate caricatures with both exaggeration and style transfer:
 ```shell script
-python generate.py \
---model_path_warper path/to/warper/model \ 
---model_path_styler path/to/styler/model \
---generate_num K \
+python main_generate.py --model_path_warper pretrained/warper.pt --model_path_styler pretrained/styler.pt
+```
+
+
+- Generate caricatures with both exaggeration and style transfer for a single image:
+```shell script
+python main_generate_single_image.py 
+--model_path_warper pretrained/warper.pt \ 
+--model_path_styler pretrained/styler.pt \
+--input_path images/Meg Ryan/P00015.jpg \
+--generate_num 5 \
 --scale 1.0 
 ```
+
+The above command will translate the input photo into 5 caricatures with different exaggerations and styles:
+
+![examples](images/Meg%20Ryan/P00015_gen.jpg)
+
+
+## Pretrained Models
+The pre-trained models are shared [here](https://drive.google.com/drive/folders/1hBdCqWZ-kqvVLOCz-j9faLNkIbifBr3t?usp=sharing).
 
 ## Citation
 If you use this code for your research, please cite our paper.
@@ -67,4 +75,7 @@ If you use this code for your research, please cite our paper.
     journal={arXiv preprint arXiv:2010.00246},
     year={2020}
     }
-    
+
+
+## Reference
+Some of our code is based on [FUNIT](https://github.com/NVlabs/FUNIT) and [UGATIT](https://github.com/znxlwm/UGATIT-pytorch).

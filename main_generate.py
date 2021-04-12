@@ -4,7 +4,6 @@ import shutil
 import argparse
 import os
 import torch
-import torch.nn.functional as F
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
@@ -13,16 +12,16 @@ from tqdm import tqdm
 
 from dataset import make_dataset
 from networks import Warper, Styler
-from utils import unloader, str2bool
+from utils import unload_img, str2bool
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--data_root', type=str, default='data/WebCaricature_align_1.3_256')
-parser.add_argument('--model_path_warper', type=str, default='path/to/warper.pt')
-parser.add_argument('--model_path_styler', type=str, default='path/to/styler_gen.pt')
-parser.add_argument('--output_path', type=str, default='result/generated')
+parser.add_argument('--model_path_warper', type=str, default='results/warper/checkpoints/warper_00020000.pt')
+parser.add_argument('--model_path_styler', type=str, default='results/styler/checkpoints/gen_00200000.pt')
+parser.add_argument('--output_path', type=str, default='results/generated')
 
 parser.add_argument('--mode', type=str, default='test')
 parser.add_argument('--hflip', type=str2bool, default=False)
@@ -32,17 +31,14 @@ parser.add_argument('--same_id', type=str2bool, default=True)
 parser.add_argument('--batch_size', type=int, default=4)
 parser.add_argument('--num_workers', type=int, default=8)
 
-parser.add_argument('--psmap', type=int, default=128)
+parser.add_argument('--img_size', type=int, default=256)
+parser.add_argument('--field_size', type=int, default=128)
 parser.add_argument('--embedding_dim', type=int, default=32)
 parser.add_argument('--warp_dim', type=int, default=64)
-parser.add_argument('--ups_dw', type=int, default=4)
-parser.add_argument('--last_bn', type=str2bool, default=True)
+parser.add_argument('--style_dim', type=int, default=8)
 parser.add_argument('--scale', type=float, default=1)
 parser.add_argument('--generate_num', type=int, default=3)
 
-parser.add_argument('--style_dim', type=int, default=8)
-parser.add_argument('--down_es', type=int, default=2)
-parser.add_argument('--restype', type=str, default='adalin')
 
 args = parser.parse_args()
 
@@ -121,5 +117,5 @@ if __name__ == '__main__':
             result = result.reshape(3, 256, 256 * num)
 
             output = torch.cat((input, result), dim=2)
-            unloader(output).save(os.path.join(output_path, '{}_{}.jpg'.format(name, filename)), 'jpeg')
+            unload_img(output).save(os.path.join(output_path, '{}_{}.jpg'.format(name, filename)), 'jpeg')
 
