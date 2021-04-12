@@ -2,6 +2,8 @@
 
 The official pytorch implementation of the paper "CariMe: Unpaired Caricature Generation with Multiple Exaggerations"
 
+![examples](images/examples.png)
+
 >CariMe: Unpaired Caricature Generation with Multiple Exaggerations
 >
 >Zheng Gu, Chuanqi Dong, Jing Huo, Wenbin Li, and Yang Gao
