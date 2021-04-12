@@ -1,4 +1,5 @@
-# CariMe: Unpaired Caricature Generation with Multiple Exaggerations
+# CariMe-pytorch
+
 
 The official pytorch implementation of the paper "CariMe: Unpaired Caricature Generation with Multiple Exaggerations"
 
@@ -13,9 +14,9 @@ The official pytorch implementation of the paper "CariMe: Unpaired Caricature Ge
 
 
 ## Prerequisites
-- Python 3
+- Python 3.6
 - Pytorch 1.5.1
-- scikit-image
+- scikit-image 0.17.2
 
 ## Preparing Dataset
 - Get the [Webcaricature](https://cs.nju.edu.cn/rl/WebCaricature.htm) dataset, unzip the dataset to the `data` folder and align the dataset by running the following script:
@@ -52,12 +53,7 @@ python main_generate.py --model_path_warper pretrained/warper.pt --model_path_st
 
 - Generate caricatures with both exaggeration and style transfer for a single image:
 ```shell script
-python main_generate_single_image.py 
---model_path_warper pretrained/warper.pt \ 
---model_path_styler pretrained/styler.pt \
---input_path images/Meg Ryan/P00015.jpg \
---generate_num 5 \
---scale 1.0 
+python main_generate_single_image.py --model_path_warper pretrained/warper.pt --model_path_styler pretrained/styler.pt --input_path images/Meg Ryan/P00015.jpg --generate_num 5 --scale 1.0 
 ```
 
 The above command will translate the input photo into 5 caricatures with different exaggerations and styles:
