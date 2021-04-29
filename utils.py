@@ -66,7 +66,7 @@ def load_img(path):
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ]
     )
-    img = Image.open(path)
+    img = Image.open(path).convert('RGB')
     img = transform(img)
     img = img.unsqueeze(0)
     return img
