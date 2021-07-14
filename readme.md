@@ -1,7 +1,7 @@
 # CariMe-pytorch
 
 
-The official pytorch implementation of the paper "CariMe: Unpaired Caricature Generation with Multiple Exaggerations"
+The official pytorch implementation of our TMM paper "CariMe: Unpaired Caricature Generation with Multiple Exaggerations"
 
 ![examples](images/examples.png)
 
@@ -9,7 +9,7 @@ The official pytorch implementation of the paper "CariMe: Unpaired Caricature Ge
 >
 >Zheng Gu, Chuanqi Dong, Jing Huo, Wenbin Li, and Yang Gao
 >
->Paper: https://arxiv.org/abs/2010.00246
+>Paper: https://ieeexplore.ieee.org/abstract/document/9454341/
 
 
 
@@ -67,11 +67,12 @@ The pre-trained models are shared [here](https://drive.google.com/drive/folders/
 ## Citation
 If you use this code for your research, please cite our paper.
 
-    @article{gu2020carime,
+    @article{gu2021carime,
     title={CariMe: Unpaired Caricature Generation with Multiple Exaggerations},
     author={Gu, Zheng and Dong, Chuanqi and Huo, Jing and Li, Wenbin and Gao, Yang},
-    journal={arXiv preprint arXiv:2010.00246},
-    year={2020}
+    journal={IEEE Transactions on Multimedia},
+    year={2021},
+    publisher={IEEE}
     }
 
 
