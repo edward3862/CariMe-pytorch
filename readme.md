@@ -1,7 +1,7 @@
 # CariMe-pytorch
 
 
-The official pytorch implementation of our TMM paper "CariMe: Unpaired Caricature Generation with Multiple Exaggerations"
+The official pytorch implementation of our TMM paper CariMe: Unpaired Caricature Generation with Multiple Exaggerations.
 
 ![examples](images/examples.png)
 
